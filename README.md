@@ -1,4 +1,4 @@
 # Stream-Log-Analysis
 using: node app.js
 
-This Node.JS code for map the log entry to hierarchy tree structure. Every node in the tree will have child nodes and there statistic calculate and store on the fly.
+This Node.js app is for map the log entry to a hierarchy tree structure. Each node in the tree would have child nodes and their statistic that calculated and stored just in time.
