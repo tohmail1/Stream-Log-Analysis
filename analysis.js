@@ -370,7 +370,7 @@ function doView(node) {
 				console.log('called:' + pathNode.currentNumberOfChildNode + ' response_time [mean:' + pathNode.currentMean.toFixed(2) + ' median:' + pathNode.currentMedian + ' mode:' + mode + '] most_dyno:' + dyno);
 				console.log('');
 			}else{
-                console.log(methodNode.name + ':' + '/api/user/' + ' had never called.\n');
+                console.log(methodNode.name + ':' + '/api/user/' + ' had never been called.\n');
             }
 		}
 	});
