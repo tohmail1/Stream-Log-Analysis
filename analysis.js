@@ -7,18 +7,32 @@
 function Node(nodename, nodeValue) {
 
 	this.childNode = [];
-    this.distribution = [];
+
+    this.valueDistribution = [];
+    this.currentMaxValueDistributionNodeValue = 0;
+    this.currentValueModeArray = [];
+    this.currentValueDistributionModeArray = [];
+    this.currentNumberOfValueDistributionNode = 0
+
+    this.nameDistribution = [];
+    this.currentMaxNameDistributionNodeValue = 0;
+    this.currentNameModeArray = [];
+    this.currentNameDistributionModeArray = [];
+    this.currentNumberOfNameDistributionNode = 0
+
+    
 	this.name = nodename;
 	this.value = nodeValue;
 	this.count = 0;
 	this.currentMaxChildNodeValue = 0;
-    this.currentMaxDistributionNodeValue = 0;
-	this.currentModeArray = [];
+    
+
+	
 	this.currentMedian = 0;
 	this.currentMean = 0;
 	this.currentSum = 0;
 	this.currentNumberOfChildNode = 0;
-    this.currentNumberOfDistributionNode = 0
+    
 	this.hasOwn = Object.prototype.hasOwnProperty;
 
 
@@ -68,55 +82,146 @@ function Node(nodename, nodeValue) {
 		}
 
 
-        /////////////// mapreduce distribution for mode ///////////////
+        /////////////// mapreduce distribution for value mode ///////////////
 
-        var distributionNodeToInsert = new Node(nodeValue.toString(), 1); //transpost matrix
-        var distributionIdx = 0;
+        //console.log('nodeValue.toString()', nodeValue.toString());
 
-        if (this.distribution.length > 0) {
-            var existingDistributionNode = this.getDistributionNodeByName(nodeValue.toString());
+        var valueDistributionNodeToInsert = new Node(nodeValue.toString(), 1); //transpost matrix
+        var valueDistributionIdx = 0;
 
-            if (!existingDistributionNode) {
+        if (this.valueDistribution.length > 0) {
+            var existingValueDistributionNode = this.getValueDistributionNodeByName(nodeValue.toString());
+
+            if (!existingValueDistributionNode) {
                 // if their is no the value exist, insert the new one to paticular order
-                distributionIdx = findInsertionPoint(this.distribution, nodeValue.toString());
-                this.distribution.splice(distributionIdx, 0, distributionNodeToInsert);
+                valueDistributionNodeToInsert.childNode = [nodeToInsert];
 
-                if (distributionNodeToInsert.value > this.currentMaxDistributionNodeValue) {
+                valueDistributionIdx = findInsertionPoint(this.valueDistribution, nodeValue.toString());
+                this.valueDistribution.splice(valueDistributionIdx, 0, valueDistributionNodeToInsert);
+                //console.log('distributionIdx', distributionIdx);
+
+                if (valueDistributionNodeToInsert.value > this.currentMaxValueDistributionNodeValue) {
                     // if the value is higher than before, replace it to mode array
-                    this.currentMaxDistributionNodeValue = distributionNodeToInsert.value;
-                    this.currentModeArray = [nodeToInsert];
-                    this.currentNumberOfDistributionNode = 1;
+                    this.currentMaxValueDistributionNodeValue = valueDistributionNodeToInsert.value;
+                    this.currentValueDistributionModeArray = [valueDistributionNodeToInsert];
+                    this.currentValueModeArray = [nodeToInsert];
+                    //console.log('new distribution and be currentMaxDistributionNodeValue', nodeToInsert.name);
 
-                }else if (distributionNodeToInsert.value == this.currentMaxDistributionNodeValue) {
+                }else if (valueDistributionNodeToInsert.value == this.currentMaxValueDistributionNodeValue) {
                     // if this value is equal to the highest, insert it to mode array to keep them both
-                    this.currentModeArray.push(nodeToInsert);
-                    this.currentNumberOfDistributionNode++;
+                    this.currentValueDistributionModeArray.push(valueDistributionNodeToInsert);
+                    this.currentValueModeArray.push(nodeToInsert);
+                    //console.log('new distribution and equal to currentMaxDistributionNodeValue', nodeToInsert.name);
                 }
             }else{
                 // if their is the value exist, increase their counting
-                existingDistributionNode.value++;
+                ++existingValueDistributionNode.value;
 
-                if (existingDistributionNode.value > this.currentMaxDistributionNodeValue) {
-                    this.currentMaxDistributionNodeValue = existingDistributionNode.value;
-                    this.currentModeArray = [nodeToInsert];
-                    this.currentNumberOfDistributionNode = 1;
+                ////// their are no dyno collect in each distribution //////
+                existingValueDistributionNode.childNode.push(nodeToInsert);
 
-                }else if (existingDistributionNode.value == this.currentMaxDistributionNodeValue) {
-                    this.currentModeArray.push(nodeToInsert);
-                    this.currentNumberOfDistributionNode++;
+                if (existingValueDistributionNode.value > this.currentMaxValueDistributionNodeValue) {
+                    this.currentMaxValueDistributionNodeValue = existingValueDistributionNode.value;
+                    this.currentValueDistributionModeArray = [existingValueDistributionNode];
+                    this.currentValueModeArray = [nodeToInsert];
+                    //console.log('have existingDistributionNode and be currentMaxDistributionNodeValue', nodeToInsert.name);
+
+                }else if (existingValueDistributionNode.value == this.currentMaxValueDistributionNodeValue) {
+                    //console.log('have existingDistributionNode and equal to currentMaxDistributionNodeValue', nodeToInsert.name);
+                    this.currentValueDistributionModeArray.push(existingValueDistributionNode);
+                    this.currentValueModeArray.push(nodeToInsert);
+                    
                 }
             }
             
             //console.log('childNode.length > 0 ', idx);
         }else{
-            this.distribution.push(distributionNodeToInsert);
-            this.currentModeArray.push(nodeToInsert);
-            this.currentMaxDistributionNodeValue = 1;
-            this.currentNumberOfDistributionNode++;
+            //console.log('first distribution: ', nodeToInsert.name);
+            valueDistributionNodeToInsert.childNode = [nodeToInsert];
+            this.valueDistribution.push(valueDistributionNodeToInsert);
+            this.currentValueDistributionModeArray = [valueDistributionNodeToInsert];
+            this.currentValueModeArray.push(nodeToInsert);
+            this.currentMaxValueDistributionNodeValue = 1;
+            
             
             
         }
+
+
         
+        this.currentNumberOfValueDistributionNode++;
+
+
+        /////////////// mapreduce distribution for name mode ///////////////
+
+        //console.log('nodeValue.toString()', nodeValue.toString());
+
+        var nameDistributionNodeToInsert = new Node(nodename.toString(), 1); //transpost matrix
+        var nameDistributionIdx = 0;
+
+        if (this.nameDistribution.length > 0) {
+            var existingNameDistributionNode = this.getNameDistributionNodeByName(nodename.toString());
+
+            if (!existingNameDistributionNode) {
+                // if their is no the value exist, insert the new one to paticular order
+                nameDistributionNodeToInsert.childNode = [nodeToInsert];
+
+                nameDistributionIdx = findInsertionPoint(this.nameDistribution, nodename.toString());
+                this.nameDistribution.splice(nameDistributionIdx, 0, nameDistributionNodeToInsert);
+                //console.log('distributionIdx', distributionIdx);
+
+                if (nameDistributionNodeToInsert.value > this.currentMaxNameDistributionNodeValue) {
+                    // if the value is higher than before, replace it to mode array
+                    this.currentMaxNameDistributionNodeValue = nameDistributionNodeToInsert.value;
+                    this.currentNameistributionModeArray = [nameDistributionNodeToInsert];
+                    this.currentNameModeArray = [nodeToInsert];
+                    //console.log('new distribution and be currentMaxDistributionNodeValue', nodeToInsert.name);
+
+                }else if (nameDistributionNodeToInsert.value == this.currentMaxNameDistributionNodeValue) {
+                    // if this value is equal to the highest, insert it to mode array to keep them both
+                    this.currentNameDistributionModeArray.push(nameDistributionNodeToInsert);
+                    this.currentNameModeArray.push(nodeToInsert);
+                    //console.log('new distribution and equal to currentMaxDistributionNodeValue', nodeToInsert.name);
+                }
+            }else{
+                // if their is the value exist, increase their counting
+                ++existingNameDistributionNode.value;
+
+                ////// their are no dyno collect in each distribution //////
+                existingNameDistributionNode.childNode.push(nodeToInsert);
+
+                if (existingNameDistributionNode.value > this.currentMaxNameDistributionNodeValue) {
+                    this.currentMaxNameDistributionNodeValue = existingNameDistributionNode.value;
+                    this.currentNameistributionModeArray = [existingNameDistributionNode];
+                    this.currentNameModeArray = [nodeToInsert];
+                    //console.log('have existingDistributionNode and be currentMaxDistributionNodeValue', nodeToInsert.name);
+
+                }else if (existingNameDistributionNode.value == this.currentMaxNameDistributionNodeValue) {
+                    //console.log('have existingDistributionNode and equal to currentMaxDistributionNodeValue', nodeToInsert.name);
+                    this.currentNameDistributionModeArray.push(existingNameDistributionNode);
+                    this.currentNameModeArray.push(nodeToInsert);
+                    
+                }
+            }
+            
+            //console.log('childNode.length > 0 ', idx);
+        }else{
+            //console.log('first distribution: ', nodeToInsert.name);
+            nameDistributionNodeToInsert.childNode = [nodeToInsert];
+            this.nameDistribution.push(nameDistributionNodeToInsert);
+            this.currentNameDistributionModeArray = [nameDistributionNodeToInsert];
+            this.currentNameModeArray.push(nodeToInsert);
+            this.currentMaxNameDistributionNodeValue = 1;
+            
+            
+            
+        }
+
+
+        
+        this.currentNumberOfNameDistributionNode++;
+
+
 
     	//////////////// mean calculate on the fly //////////////
 
@@ -148,11 +253,11 @@ function Node(nodename, nodeValue) {
 		}
 	}
 
-    this.getDistributionNodeByName = function(name){
+    this.getValueDistributionNodeByName = function(name){
         //console.log('getChildNode', this[name]);
-        if (this.distribution.length > 0) {
+        if (this.valueDistribution.length > 0) {
             //return this.childNode[this[name]];
-            var idx = this.distribution.reduce( function( cur, val, index ){
+            var idx = this.valueDistribution.reduce( function( cur, val, index ){
 
                 if( val.name === name && cur === -1 ) {
                     return index;
@@ -160,14 +265,39 @@ function Node(nodename, nodeValue) {
                 return cur;
 
             }, -1 );
-
-            return this.distribution[idx];
+            //console.log('getDistributionNodeByName idx: ', idx);
+            if (idx === -1) {
+                return null;
+            };
+            return this.valueDistribution[idx];
 
         }else{
             return null;
         }
     }
 
+    this.getNameDistributionNodeByName = function(name){
+        //console.log('getChildNode', this[name]);
+        if (this.nameDistribution.length > 0) {
+            //return this.childNode[this[name]];
+            var idx = this.nameDistribution.reduce( function( cur, val, index ){
+
+                if( val.name === name && cur === -1 ) {
+                    return index;
+                }
+                return cur;
+
+            }, -1 );
+            //console.log('getDistributionNodeByName idx: ', idx);
+            if (idx === -1) {
+                return null;
+            };
+            return this.nameDistribution[idx];
+
+        }else{
+            return null;
+        }
+    }
 
     
 };
@@ -333,15 +463,15 @@ function doView(node) {
 			interestedEndpoint.forEach(function(path){
 				var pathNode = methodNode.getChildNodeByName(path);
 				if (pathNode) {
-					var dyno = pathNode.currentModeArray.reduce(function(node, curr) {
-                        if (node.indexOf(curr.name) < 0) {
-                            node.push(curr.name);
-                            
-                        };
-    					return node; 
-					},[]);
                     
-                    var mode = pathNode.currentModeArray.map(function(node) {
+					var dyno = pathNode.currentNameModeArray.map(function(node) {
+                        return node.name;
+                    });
+                    
+
+                    
+
+                    var mode = pathNode.currentValueModeArray.map(function(node) {
                         return node.value;
                     });
 
@@ -352,17 +482,14 @@ function doView(node) {
 			});
 
 			var pathNode = methodNode.getChildNodeByName('/api/user/');
-            //console.log('pathNode.currentModeArray ', pathNode.currentModeArray);
+            
 			if (pathNode) {
-				var dyno = pathNode.currentModeArray.reduce(function(node, curr) {
-                    if (node.indexOf(curr.name) < 0) {
-                        node.push(curr.name);
-                            
-                    };
-                    return node; 
-                },[]);
+                //console.log('currentDistributionModeArray', pathNode.currentValueDistributionModeArray);
+				var dyno = pathNode.currentNameModeArray.map(function(node) {
+                        return node.name;
+                    });
 
-                var mode = pathNode.currentModeArray.map(function(node) {
+                var mode = pathNode.currentValueModeArray.map(function(node) {
                         return node.value;
                     });
 
@@ -370,7 +497,7 @@ function doView(node) {
 				console.log('called:' + pathNode.currentNumberOfChildNode + ' response_time [mean:' + pathNode.currentMean.toFixed(2) + ' median:' + pathNode.currentMedian + ' mode:' + mode + '] most_dyno:' + dyno);
 				console.log('');
 			}else{
-                console.log(methodNode.name + ':' + '/api/user/' + ' had never been called.\n');
+                console.log(methodNode.name + ':' + '/api/user/' + ' had never called.\n');
             }
 		}
 	});
